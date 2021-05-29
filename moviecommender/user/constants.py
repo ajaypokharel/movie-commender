@@ -1,0 +1,11 @@
+MALE = 'MALE'
+FEMALE = 'FEMALE'
+OTHER = 'OTHER'
+
+GENDER_CHOICES = (
+    (MALE, 'MALE'),
+    (FEMALE, 'FEMALE'),
+    (OTHER, 'OTHER')
+)
+
+ADMIN = "ADMIN"
