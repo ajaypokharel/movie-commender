@@ -1,0 +1,4 @@
+venv/
+.idea/
+config/settings/env.py
+movieCommender.sqlite
