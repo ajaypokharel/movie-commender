@@ -8,7 +8,7 @@ from django.db import models
 
 from config import settings
 from moviecommender.commons.models import TimeStampModel
-from moviecommender.user.constants import GENDER_CHOICES
+from moviecommender.user.constants import GENDER_CHOICES, GENRE_CHOICES
 from moviecommender.user.manager import UserManager
 
 
@@ -43,6 +43,8 @@ class User(TimeStampModel, AbstractUser):
     current_address = models.CharField(max_length=100, blank=True, null=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
     profile_picture = models.ImageField(upload_to=get_profile_picture_upload_path, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+    fav_genre = models.CharField(max_length=25, choices=GENRE_CHOICES, blank=True, null=True)
 
     objects = UserManager()
 
