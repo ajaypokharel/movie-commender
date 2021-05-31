@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from moviecommender.commons.constants import GROUP_CHOICES, COMMON_USER
 from moviecommender.commons.serializers import DynamicFieldsModelSerializer
-
+from moviecommender.user.constants import GENRE_CHOICES
 
 USER = get_user_model()
 
@@ -17,6 +17,8 @@ class UserRegisterationSerializer(DynamicFieldsModelSerializer):
         style={'input_type': 'password'}
     )
     groups = serializers.ChoiceField(choices=GROUP_CHOICES, write_only=True, required=False)
+    fav_genre = serializers.ListField(child=serializers.ChoiceField(choices=GENRE_CHOICES, required=False),
+                                      required=False)
 
     class Meta:
         model = USER
