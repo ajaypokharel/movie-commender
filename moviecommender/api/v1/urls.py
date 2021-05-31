@@ -13,6 +13,7 @@ ROUTER = DefaultRouter()
 urlpatterns = [
     path('auth/login/', KnoxLoginView.as_view(), name='knox_login'),
     path('auth/logout/', knoxViews.LogoutView.as_view(), name='knox_logout'),
-    path('users/', include('moviecommender.user.api.urls'))
+    path('movies/', include('moviecommender.movies.api.urls')),
+    path('users/', include('moviecommender.user.api.urls')),
 
 ] + ROUTER.urls

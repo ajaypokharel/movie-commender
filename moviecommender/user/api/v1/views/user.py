@@ -35,7 +35,7 @@ class UserViewSet(ModelViewSet):
         kwargs['context'] = self.get_serializer_context()
         if self.action in ['update', 'partial_update']:
             kwargs['fields'] = ['email', 'first_name', 'middle_name', 'last_name', 'birthdate', 'current_address'
-                                'gender', 'profile_picture']
+                                'gender', 'profile_picture', 'bio', 'fav_genre']
         return serializer_class(*args, **kwargs)
 
 
