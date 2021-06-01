@@ -1,9 +1,14 @@
 from django.contrib.auth import get_user_model
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from moviecommender.commons.permissions import AdminPermission
+from moviecommender.movies.api.v1.serializers.movie import MovieWatchListSerializer
+from moviecommender.movies.models import MovieWatchList
 from moviecommender.user.api.v1.serializers.user import UserRegisterationSerializer
 
 USER = get_user_model()
@@ -20,14 +25,20 @@ class UserViewSet(ModelViewSet):
     def get_queryset(self):
         if self.action in ['update', 'destroy', 'partial_update']:
             return USER.objects.filter(username=self.request.user.username)
+        if self.action == 'watchlist':
+            return MovieWatchList.objects.filter(watcher=self.request.user)
         return USER.objects.all()
 
     def get_permissions(self):
-        if self.action in ['update', 'destroy', 'partial_update']:
+        if self.action in ['update', 'destroy', 'partial_update', 'watchlist']:
             return [IsAuthenticated()]
+        if self.action == 'assign_group':
+            return [AdminPermission()]
         return [AllowAny()]
 
     def get_serializer_class(self):
+        if self.action == 'watchlist':
+            return MovieWatchListSerializer
         return UserRegisterationSerializer
 
     def get_serializer(self, *args, **kwargs):
@@ -36,8 +47,26 @@ class UserViewSet(ModelViewSet):
         if self.action in ['update', 'partial_update']:
             kwargs['fields'] = ['email', 'first_name', 'middle_name', 'last_name', 'birthdate', 'current_address'
                                 'gender', 'profile_picture', 'bio', 'fav_genre']
+        if self.action in ['assign_group']:
+            kwargs['fields'] = ['groups']
         return serializer_class(*args, **kwargs)
 
+    @action(detail=False, methods=['get'])
+    def watchlist(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
 
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
+    @action(detail=True, methods=['put'], url_path='assign-admin')
+    def assign_group(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({'detail': "Group assigned successfully."})
