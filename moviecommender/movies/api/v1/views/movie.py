@@ -6,9 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from moviecommender.commons.permissions import AdminPermission
 from moviecommender.movies.api.v1.serializers.movie import MovieSerializer, MovieWatchListSerializer
-from moviecommender.movies.models import MovieWatchList, Movie
+from moviecommender.movies.models import Movie
+from moviecommender.permissions.permissions import IsMovieFiller
 
 
 class MovieViewSet(ModelViewSet):
@@ -25,7 +25,7 @@ class MovieViewSet(ModelViewSet):
     def get_permissions(self):
         if self.action == 'add_to_watchlist':
             return [IsAuthenticated()]
-        return [AdminPermission()]
+        return [IsMovieFiller()]
 
     def get_serializer_class(self):
         if self.action == 'add_to_watchlist':
