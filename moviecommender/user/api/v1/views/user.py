@@ -2,13 +2,13 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from moviecommender.commons.permissions import AdminPermission
 from moviecommender.movies.api.v1.serializers.movie import MovieWatchListSerializer
 from moviecommender.movies.models import MovieWatchList
+from moviecommender.permissions.permissions import IsLoggedIn, IsAdminUser
 from moviecommender.user.api.v1.serializers.user import UserRegisterationSerializer
 
 USER = get_user_model()
@@ -31,9 +31,9 @@ class UserViewSet(ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['update', 'destroy', 'partial_update', 'watchlist']:
-            return [IsAuthenticated()]
+            return [IsLoggedIn()]
         if self.action == 'assign_group':
-            return [AdminPermission()]
+            return [IsAdminUser()]
         return [AllowAny()]
 
     def get_serializer_class(self):
