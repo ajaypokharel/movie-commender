@@ -29,7 +29,8 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'moviecommender.user',
     'moviecommender.api',
-    'moviecommender.movies'
+    'moviecommender.movies',
+    'moviecommender.permissions'
 ]
 
 INSTALLED_APPS += THIRD_PARTY_APPS + LOCAL_APPS
