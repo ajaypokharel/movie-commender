@@ -15,5 +15,6 @@ urlpatterns = [
     path('auth/logout/', knoxViews.LogoutView.as_view(), name='knox_logout'),
     path('', include('moviecommender.movies.api.urls')),
     path('', include('moviecommender.user.api.urls')),
+    path('', include('moviecommender.moviefiller.api.urls')),
 
 ] + ROUTER.urls
