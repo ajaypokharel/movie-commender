@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -6,6 +7,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from moviecommender.moviefiller.api.v1.serializers.apply import MovieFillerApplySerializer
+from moviecommender.moviefiller.models import MovieFiller
 from moviecommender.movies.api.v1.serializers.movie import MovieWatchListSerializer
 from moviecommender.movies.models import MovieWatchList
 from moviecommender.permissions.permissions import IsLoggedIn, IsAdminUser
@@ -39,6 +42,8 @@ class UserViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'watchlist':
             return MovieWatchListSerializer
+        if self.action == 'moviefiller_apply':
+            return MovieFillerApplySerializer
         return UserRegisterationSerializer
 
     def get_serializer(self, *args, **kwargs):
@@ -70,3 +75,10 @@ class UserViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({'detail': "Group assigned successfully."})
+
+    @action(detail=False, methods=['post'], url_path='apply-moviefiller')
+    def moviefiller_apply(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
