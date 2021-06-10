@@ -26,14 +26,14 @@ class UserViewSet(ModelViewSet):
     ordering_fields = ['created_at', 'first_name']
 
     def get_queryset(self):
-        if self.action in ['update', 'destroy', 'partial_update']:
+        if self.action in ['update', 'destroy', 'partial_update', 'me']:
             return USER.objects.filter(username=self.request.user.username)
         if self.action == 'watchlist':
             return MovieWatchList.objects.filter(watcher=self.request.user)
         return USER.objects.all()
 
     def get_permissions(self):
-        if self.action in ['update', 'destroy', 'partial_update', 'watchlist']:
+        if self.action in ['update', 'destroy', 'partial_update', 'watchlist', 'me']:
             return [IsLoggedIn()]
         if self.action == 'assign_group':
             return [IsAdminUser()]
@@ -82,3 +82,15 @@ class UserViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'])
+    def me(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
