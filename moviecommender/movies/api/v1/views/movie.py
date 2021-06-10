@@ -2,13 +2,12 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from moviecommender.movies.api.v1.serializers.movie import MovieSerializer, MovieWatchListSerializer
 from moviecommender.movies.models import Movie
-from moviecommender.permissions.permissions import IsMovieFiller
+from moviecommender.permissions.permissions import IsMovieFiller, IsLoggedIn
 
 
 class MovieViewSet(ModelViewSet):
@@ -23,8 +22,8 @@ class MovieViewSet(ModelViewSet):
         return Movie.objects.all()
 
     def get_permissions(self):
-        if self.action == 'add_to_watchlist':
-            return [IsAuthenticated()]
+        if self.action in ['add_to_watchlist', 'list', 'retrieve']:
+            return [IsLoggedIn()]
         return [IsMovieFiller()]
 
     def get_serializer_class(self):
