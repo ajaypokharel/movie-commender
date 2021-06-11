@@ -33,7 +33,7 @@ class UserViewSet(ModelViewSet):
         return USER.objects.all()
 
     def get_permissions(self):
-        if self.action in ['update', 'destroy', 'partial_update', 'watchlist', 'me']:
+        if self.action in ['update', 'destroy', 'partial_update', 'watchlist', 'me', 'moviefiller_apply']:
             return [IsLoggedIn()]
         if self.action == 'assign_group':
             return [IsAdminUser()]
