@@ -33,6 +33,13 @@ class MovieFillerSerializer(DynamicFieldsModelSerializer):
             raise serializers.ValidationError({'detail': 'User is already a Movie Filler'})
         return filler
 
+    def validate_movies_filled(self, movies_filled):
+        if movies_filled == 10:
+            obj = MovieFiller.objects.get(filler=self.request.user)
+            level = obj.level
+            MovieFiller.objects.filter(filler=self.request.user).update(level=level+1)
+        return movies_filled
+
     def create(self, validated_data):
         user = validated_data['filler']
         instance = super().create(validated_data)
