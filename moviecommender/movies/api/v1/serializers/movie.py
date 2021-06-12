@@ -9,6 +9,15 @@ from moviecommender.user.constants import GENRE_CHOICES
 
 
 class MovieSerializer(DynamicFieldsModelSerializer):
+    genre = serializers.ListField(
+        child=serializers.ChoiceField(choices=GENRE_CHOICES, allow_blank=True, allow_null=True),
+        allow_empty=True
+    )
+    director = serializers.ListField(max_length=100)
+    writer = serializers.ListField(max_length=100)
+    cast = serializers.ListField(max_length=100)
+    main_cast = serializers.ListField(max_length=100)
+    language = serializers.ListField(max_length=25)
 
     class Meta:
         model = Movie
@@ -26,11 +35,11 @@ class MovieSerializer(DynamicFieldsModelSerializer):
                 child=serializers.ChoiceField(choices=GENRE_CHOICES, allow_blank=True, allow_null=True),
                 allow_empty=True
             )
-            fields['director'] = serializers.ListField(max_length=100)
-            fields['writer'] = serializers.ListField(max_length=100)
-            fields['cast'] = serializers.ListField(max_length=100)
-            fields['main_cast'] = serializers.ListField(max_length=100)
-            fields['language'] = serializers.ListField(max_length=25)
+            fields['director'] = serializers.ListField(child=serializers.CharField(max_length=100))
+            fields['writer'] = serializers.ListField(child=serializers.CharField(max_length=100))
+            fields['cast'] = serializers.ListField(child=serializers.CharField(max_length=100))
+            fields['main_cast'] = serializers.ListField(child=serializers.CharField(max_length=100))
+            fields['language'] = serializers.ListField(child=serializers.CharField(max_length=25))
         return fields
 
     @transaction.atomic()
@@ -40,8 +49,13 @@ class MovieSerializer(DynamicFieldsModelSerializer):
         if 'MOVIE_FILLER' in user.groups.values_list('name', flat=True):
             obj = MovieFiller.objects.get(filler=user)
             movies_filled = obj.movies_filled
+            level = obj.level
             obj.movies_filled = movies_filled + 1
             obj.save()
+            new_obj = MovieFiller.objects.get(filler=user)
+            if new_obj.movies_filled % 10 == 0:
+                new_obj.level = level + 1
+                new_obj.save()
         return instance
 
 

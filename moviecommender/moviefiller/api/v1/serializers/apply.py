@@ -7,7 +7,6 @@ from moviecommender.commons.serializers import DynamicFieldsModelSerializer
 from moviecommender.moviefiller.models import MovieFiller, MovieFillerApply
 from moviecommender.user.api.v1.serializers.user import UserRegisterationSerializer
 
-
 USER = get_user_model()
 
 
@@ -32,13 +31,6 @@ class MovieFillerSerializer(DynamicFieldsModelSerializer):
         if MovieFiller.objects.filter(filler=filler).exists():
             raise serializers.ValidationError({'detail': 'User is already a Movie Filler'})
         return filler
-
-    def validate_movies_filled(self, movies_filled):
-        if movies_filled == 10:
-            obj = MovieFiller.objects.get(filler=self.request.user)
-            level = obj.level
-            MovieFiller.objects.filter(filler=self.request.user).update(level=level+1)
-        return movies_filled
 
     def create(self, validated_data):
         user = validated_data['filler']
@@ -67,7 +59,6 @@ class MovieFillerApplySerializer(DynamicFieldsModelSerializer):
                 'write_only': True
             }
         return extra_kwargs
-
 
     def create(self, validated_data):
         validated_data['applicant'] = self.request.user
