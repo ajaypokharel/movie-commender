@@ -24,8 +24,8 @@ class UserRegisterationSerializer(DynamicFieldsModelSerializer):
         model = USER
         fields = ['username', 'email', 'first_name', 'middle_name', 'last_name', 'display_name', 'birthdate',
                   'current_address', 'gender', 'profile_picture', 'password', 'repeat_password', 'groups', 'created_at',
-                  'updated_at', 'bio', 'fav_genre']
-        read_only_fields = ['username', 'display_name', 'created_at', 'updated_at', 'groups']
+                  'updated_at', 'bio', 'fav_genre', 'is_verified']
+        read_only_fields = ['username', 'display_name', 'created_at', 'updated_at', 'groups', 'is_verified']
         extra_kwargs = {
             'password': {
                 'write_only': True
@@ -47,7 +47,7 @@ class UserRegisterationSerializer(DynamicFieldsModelSerializer):
         if self.request and self.request.method.lower() == 'post':
             dj_password_validation(attrs['password'])
             if attrs['password'] != attrs['repeat_password']:
-                raise serializers.ValidationError({'password': 'Passwords does not match.'})
+                raise serializers.ValidationError({'password': 'Passwords do not match.'})
         return attrs
 
     @transaction.atomic
