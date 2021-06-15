@@ -8,11 +8,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from moviecommender.moviefiller.api.v1.serializers.apply import MovieFillerApplySerializer
-from moviecommender.moviefiller.models import MovieFiller
 from moviecommender.movies.api.v1.serializers.movie import MovieWatchListSerializer
 from moviecommender.movies.models import MovieWatchList
 from moviecommender.permissions.permissions import IsLoggedIn, IsAdminUser
 from moviecommender.user.api.v1.serializers.user import UserRegisterationSerializer
+from moviecommender.user.api.v1.serializers.password_change import PasswordChangeSerializer
 
 USER = get_user_model()
 
@@ -26,14 +26,15 @@ class UserViewSet(ModelViewSet):
     ordering_fields = ['created_at', 'first_name']
 
     def get_queryset(self):
-        if self.action in ['update', 'destroy', 'partial_update', 'me']:
+        if self.action in ['update', 'destroy', 'partial_update', 'me', 'change_password']:
             return USER.objects.filter(username=self.request.user.username)
         if self.action == 'watchlist':
             return MovieWatchList.objects.filter(watcher=self.request.user)
         return USER.objects.all()
 
     def get_permissions(self):
-        if self.action in ['update', 'destroy', 'partial_update', 'watchlist', 'me', 'moviefiller_apply']:
+        if self.action in ['update', 'destroy', 'partial_update', 'watchlist',
+                           'me', 'moviefiller_apply', 'change_password']:
             return [IsLoggedIn()]
         if self.action == 'assign_group':
             return [IsAdminUser()]
@@ -44,6 +45,8 @@ class UserViewSet(ModelViewSet):
             return MovieWatchListSerializer
         if self.action == 'moviefiller_apply':
             return MovieFillerApplySerializer
+        if self.action == 'change_password':
+            return PasswordChangeSerializer
         return UserRegisterationSerializer
 
     def get_serializer(self, *args, **kwargs):
@@ -94,3 +97,13 @@ class UserViewSet(ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='change-password')
+    def change_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({'detail': 'Password Changed successfully!'})
+
