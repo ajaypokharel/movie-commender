@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from config import settings
@@ -45,6 +46,7 @@ class User(TimeStampModel, AbstractUser):
     profile_picture = models.ImageField(upload_to=get_profile_picture_upload_path, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     fav_genre = models.CharField(max_length=25, choices=GENRE_CHOICES, blank=True, null=True)
+    is_verified = models.BooleanField(default=False)
 
     objects = UserManager()
 
@@ -62,3 +64,10 @@ class User(TimeStampModel, AbstractUser):
         if self.profile_picture:
             return urljoin(settings.BACKEND_URL, self.profile_picture.url)
         return urljoin(settings.BACKEND_URL, urljoin(settings.STATIC_URL, 'user/default_profile_picture.jpeg'))
+
+
+class EmailOTP(TimeStampModel):
+    email = models.EmailField()
+    otp = models.PositiveIntegerField(validators=[MinValueValidator(100000), MaxValueValidator(999999)])
+    is_expired = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
