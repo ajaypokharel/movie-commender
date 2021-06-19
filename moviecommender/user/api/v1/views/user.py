@@ -11,8 +11,10 @@ from moviecommender.moviefiller.api.v1.serializers.apply import MovieFillerApply
 from moviecommender.movies.api.v1.serializers.movie import MovieWatchListSerializer
 from moviecommender.movies.models import MovieWatchList
 from moviecommender.permissions.permissions import IsLoggedIn, IsAdminUser
+from moviecommender.user.api.v1.serializers.password_reset import EmailOTPSerializer, OTPVerificationSerializer
 from moviecommender.user.api.v1.serializers.user import UserRegisterationSerializer
 from moviecommender.user.api.v1.serializers.password_change import PasswordChangeSerializer
+from moviecommender.user.models import EmailOTP
 
 USER = get_user_model()
 
@@ -30,11 +32,13 @@ class UserViewSet(ModelViewSet):
             return USER.objects.filter(username=self.request.user.username)
         if self.action == 'watchlist':
             return MovieWatchList.objects.filter(watcher=self.request.user)
+        if self.action in ['otp_send', 'verify_otp']:
+            return USER.objects.exclude(is_verified=True)
         return USER.objects.all()
 
     def get_permissions(self):
         if self.action in ['update', 'destroy', 'partial_update', 'watchlist',
-                           'me', 'moviefiller_apply', 'change_password']:
+                           'me', 'moviefiller_apply', 'change_password', 'otp_send', 'verify_otp']:
             return [IsLoggedIn()]
         if self.action == 'assign_group':
             return [IsAdminUser()]
@@ -47,6 +51,10 @@ class UserViewSet(ModelViewSet):
             return MovieFillerApplySerializer
         if self.action == 'change_password':
             return PasswordChangeSerializer
+        if self.action == 'otp_send':
+            return EmailOTPSerializer
+        if self.action == 'verify_otp':
+            return OTPVerificationSerializer
         return UserRegisterationSerializer
 
     def get_serializer(self, *args, **kwargs):
@@ -107,3 +115,19 @@ class UserViewSet(ModelViewSet):
         user.save()
         return Response({'detail': 'Password Changed successfully!'})
 
+    @action(detail=False, methods=['post'], url_path='otp-send')
+    def otp_send(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'detail': 'An email with an OTP code has been sent to your email'})
+
+    @action(detail=False, methods=['post'], url_path='otp-verify')
+    def verify_otp(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        otp = serializer.validated_data['otp']
+        email = request.user.email
+        EmailOTP.objects.filter(otp=otp, email=email).update(is_expired=True, is_verified=True)
+        USER.objects.filter(email=email).update(is_verified=True)
+        return Response({'detail': 'User Verified!'})
