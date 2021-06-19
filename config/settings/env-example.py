@@ -144,3 +144,10 @@ MEDIA_ROOT = os.path.join(ROOT_DIR, 'media/')
 MEDIA_URL = '/media/'
 
 AUTH_USER_MODEL = 'user.User'
+
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'your_email_here'
+EMAIL_HOST_PASSWORD = 'your_email_password'
