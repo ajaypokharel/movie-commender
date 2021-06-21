@@ -1,6 +1,7 @@
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 
+from moviecommender.commons.constants import PENDING
 from moviecommender.commons.mixins.viewsets import ListRetrieveUpdateViewSetMixin
 from moviecommender.moviefiller.api.v1.serializers.apply import MovieFillerApplySerializer
 from moviecommender.moviefiller.models import MovieFillerApply, MovieFiller
@@ -14,6 +15,8 @@ class MovieFillerApplyViewSet(ListRetrieveUpdateViewSetMixin):
     serializer_class = MovieFillerApplySerializer
 
     def get_queryset(self):
+        if self.action in ['update', 'partial_update']:
+            return MovieFillerApply.objects.filter(status=PENDING)
         return MovieFillerApply.objects.all()
 
     def get_permissions(self):
