@@ -66,7 +66,8 @@ class MovieFillerApplySerializer(DynamicFieldsModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
         status = validated_data.get('status')
         if status == 'ACCEPTED':
-            MovieFiller.objects.create(filler=self.request.user)
+            MovieFiller.objects.create(filler=instance.applicant)
         return instance
